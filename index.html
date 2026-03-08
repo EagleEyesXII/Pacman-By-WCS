@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacman สูตรคูณ By WCS</title>
+    <style>
+        :root { --bg-color: #020204; --wall-color: #1e3fcc; --wall-glow: #00ccff; --text-color: #ffffff; --accent-color: #ffd700; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        #game-container { position: relative; border: 4px solid var(--wall-color); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 204, 255, 0.4); }
+        canvas { display: block; background-color: black; }
+        #setup-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 2, 4, 0.96); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; border-radius: 8px; }
+        .menu-row { margin: 8px 0; text-align: center; }
+        button#start-btn { padding: 15px 40px; font-size: 24px; background: var(--accent-color); color: black; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 15px; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4); }
+        #ui-layer { position: absolute; top: -55px; width: 100%; display: flex; justify-content: space-between; font-weight: bold; font-size: 20px; }
+        #quiz-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.98); padding: 40px; border: 4px solid var(--accent-color); border-radius: 20px; text-align: center; display: none; z-index: 10; }
+        .heart { color: #ff4d4d; font-size: 28px; }
+        select, input[type="color"] { padding: 8px; font-size: 16px; border-radius: 8px; cursor: pointer; border: 2px solid var(--wall-glow); background: #111; color: white; }
+        .difficulty-btn { padding: 10px 20px; margin: 5px; border: 2px solid var(--accent-color); background: transparent; color: white; cursor: pointer; border-radius: 10px; font-weight: bold; transition: 0.3s; }
+        .difficulty-btn.active { background: var(--accent-color); color: black; }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div id="setup-menu">
+            <h1 style="color:var(--accent-color); font-size: 48px; text-shadow: 0 0 15px #ffd700; margin-bottom: 5px;">Pacman สูตรคูณ</h1>
+            <h2 style="color:#00ccff; font-size: 22px; margin-top: 0;">By WCS</h2>
+            
+            <div class="menu-row">
+                <p>เลือกระดับความยาก (ตอบผิดหักพลังชีวิต!):</p>
+                <button class="difficulty-btn" onclick="setDiff('easy', this)">EASY</button>
+                <button class="difficulty-btn active" onclick="setDiff('normal', this)">NORMAL</button>
+                <button class="difficulty-btn" onclick="setDiff('hard', this)">HARD</button>
+            </div>
+
+            <div class="menu-row">
+                <span>สีตัวละคร: <input type="color" id="color-picker" value="#ffd700"></span>
+                <span> หมวก: 
+                    <select id="hat-select">
+                        <option value="none">ไม่ใส่</option>
+                        <option value="king">มงกุฎ</option>
+                        <option value="ribbon">โบว์</option>
+                        <option value="ninja">นินจา</option>
+                    </select>
+                </span>
+            </div>
+            <button id="start-btn">เริ่มความมันส์!</button>
+        </div>
+
+        <div id="ui-layer">
+            <div>พลังชีวิต: <span id="lives-text" class="heart">❤❤❤❤❤</span></div>
+            <div id="score-display">เป้าหมาย: 0/10</div>
+        </div>
+        
+        <canvas id="gameCanvas" width="1120" height="640"></canvas>
+
+        <div id="quiz-overlay">
+            <h2 id="question-text" style="font-size:48px; margin-bottom: 20px;"></h2>
+            <input type="number" id="answer-input" style="font-size:36px; width:150px; text-align:center; padding: 10px; border-radius: 10px;">
+            <button id="submit-btn" style="padding:15px 30px; font-size:24px; background:var(--accent-color); border-radius:10px; font-weight: bold;">ตอบ</button>
+        </div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const tileSize = 40;
+    const wallDepth = 5;
+
+    let difficulty = 'normal';
+    let targetScore = 10;
+    let lives = 5;
+    let solvedCount = 0;
+    let isPaused = true;
+    let gameActive = false;
+    let ghostStunned = false, stunTimer = 0;
+    let isInvincible = false, invincibleTimer = 0;
+
+    const pacman = { x: 60, y: 60, radius: 15, speed: 5, dx: 0, dy: 0, color: '#ffd700', hat: 'none', isFrozen: false };
+
+    const map = [
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1],
+        [1,0,1,0,1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,1,1,1,0,1,0,1,0,1],
+        [1,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,1],
+        [1,0,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1],
+        [1,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1],
+        [1,0,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1,1,1,0,1],
+        [1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,1],
+        [1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1,1],
+        [1,0,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+        [1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,1,0,1,1,1,0,1,0,1,1,0,1],
+        [1,0,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,1],
+        [1,0,1,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,0,1,0,1],
+        [1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,1],
+        [1,0,1,1,1,0,1,1,1,0,1,0,1,1,1,1,0,1,0,1,1,1,0,1,1,1,0,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+
+    let items = [];
+    const ghosts = [
+        { x: 0, y: 0, color: 'red', dx: 3.2, dy: 0, type: 'chaser' },
+        { x: 0, y: 0, color: 'purple', dx: -2.8, dy: 0, type: 'random' },
+        { x: 0, y: 0, color: 'cyan', dx: 0, dy: 2.8, type: 'random' },
+        { x: 0, y: 0, color: 'limegreen', dx: 0, dy: -2.8, type: 'random' }
+    ];
+
+    function setDiff(mode, btn) {
+        difficulty = mode;
+        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if(mode === 'easy') { lives = Infinity; targetScore = 5; }
+        else if(mode === 'normal') { lives = 5; targetScore = 10; }
+        else { lives = 1; targetScore = 10; }
+        updateUI();
+    }
+
+    function updateUI() {
+        const livesText = (lives === Infinity) ? "∞" : "❤".repeat(Math.max(0, lives));
+        document.getElementById('lives-text').innerText = livesText;
+        document.getElementById('score-display').innerText = `เป้าหมาย: ${solvedCount}/${targetScore}`;
+    }
+
+    function drawStyledWall(ctx, c, r, width, height) {
+        const x = c * width, y = r * height, cx = x + width/2, cy = y + height/2;
+        ctx.fillStyle = '#102060'; ctx.fillRect(x, y + height - wallDepth, width, wallDepth); ctx.fillRect(x + width - wallDepth, y, wallDepth, height - wallDepth);
+        const gradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, width/1.5); gradient.addColorStop(0, '#00ccff'); gradient.addColorStop(0.6, '#1e3fcc'); gradient.addColorStop(1, '#001a66');
+        ctx.fillStyle = gradient; ctx.fillRect(x, y, width - wallDepth, height - wallDepth); ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; ctx.strokeRect(x+1, y+1, width-wallDepth-2, height-wallDepth-2);
+    }
+
+    function checkWall(x, y) {
+        const p = 12; const points = [{x:x-p, y:y-p}, {x:x+p, y:y-p}, {x:x-p, y:y+p}, {x:x+p, y:y+p}];
+        return points.some(pt => { const mX = Math.floor(pt.x/tileSize); const mY = Math.floor(pt.y/tileSize); return map[mY] && map[mY][mX] === 1; });
+    }
+
+    function update() {
+        if (!gameActive || isPaused) return;
+        if (!pacman.isFrozen) { let nX = pacman.x + pacman.dx, nY = pacman.y + pacman.dy; if (!checkWall(nX, nY)) { pacman.x = nX; pacman.y = nY; } }
+        const pX = pacman.x, pY = pacman.y, pGridX = Math.floor(pX/tileSize), pGridY = Math.floor(pY/tileSize);
+        
+        items.forEach((item, idx) => { if (item.r === pGridY && item.c === pGridX) { 
+            if (item.type === 2) spawnQuiz(); 
+            if (item.type === 3) { ghostStunned = true; stunTimer = Date.now() + 3000; } 
+            if (item.type === 4) { isInvincible = true; invincibleTimer = Date.now() + 5000; pacman.speed = 6.5; } 
+            items.splice(idx, 1); if (items.filter(i => i.type === 2).length < 4) addItem(2, 1);
+        } });
+
+        ghosts.forEach(g => {
+            if (!ghostStunned) {
+                if (g.type === 'chaser') {
+                    let spd = 3.2;
+                    if (Math.abs(g.x - pX) > Math.abs(g.y - pY)) {
+                        let nDx = (g.x < pX) ? spd : -spd; if (!checkWall(g.x + nDx, g.y)) { g.dx = nDx; g.dy = 0; }
+                        else { g.dy = (g.y < pY) ? spd : -spd; if (checkWall(g.x, g.y + g.dy)) g.dy *= -1; g.dx = 0; }
+                    } else {
+                        let nDy = (g.y < pY) ? spd : -spd; if (!checkWall(g.x, g.y + nDy)) { g.dy = nDy; g.dx = 0; }
+                        else { g.dx = (g.x < pX) ? spd : -spd; if (checkWall(g.x + g.dx, g.y)) g.dx *= -1; g.dy = 0; }
+                    }
+                } else {
+                    if (checkWall(g.x + g.dx, g.y + g.dy) || Math.random() < 0.05) {
+                        const dirs = [[3,0], [-3,0], [0,3], [0,-3]].filter(d => !checkWall(g.x + d[0], g.y + d[1]));
+                        if (dirs.length > 0) { const d = dirs[Math.floor(Math.random() * dirs.length)]; g.dx = d[0]; g.dy = d[1]; }
+                    }
+                }
+                g.x += g.dx; g.y += g.dy;
+            }
+            if (Math.hypot(g.x-pX, g.y-pY) < 25 && !isInvincible) hit();
+        });
+        if (ghostStunned && Date.now() > stunTimer) ghostStunned = false;
+        if (isInvincible && Date.now() > invincibleTimer) { isInvincible = false; pacman.speed = 5; }
+    }
+
+    function hit() {
+        if(lives !== Infinity) lives--; 
+        updateUI();
+        pacman.x = 60; pacman.y = 60; pacman.dx = 0; pacman.dy = 0;
+        if (lives <= 0) { alert("Game Over! พยายามเข้าใหม่นะ!"); location.reload(); }
+    }
+
+    function spawnQuiz() {
+        isPaused = true; 
+        const a = Math.floor(Math.random() * 11) + 2;
+        const b = Math.floor(Math.random() * 11) + 2;
+        const ans = a * b; 
+
+        document.getElementById('question-text').innerText = `${a} x ${b} = ?`; 
+        document.getElementById('quiz-overlay').style.display = 'block'; 
+        document.getElementById('answer-input').focus();
+
+        document.getElementById('submit-btn').onclick = () => { 
+            const val = parseInt(document.getElementById('answer-input').value);
+            if (val === ans) { 
+                solvedCount++; updateUI();
+                if (solvedCount >= targetScore) { alert("สุดยอด! คุณผ่านด่าน " + difficulty.toUpperCase()); location.reload(); } 
+            } else { 
+                if (lives !== Infinity) lives--; // หักพลังชีวิตเมื่อตอบผิด
+                updateUI();
+                pacman.isFrozen = true; const old = pacman.color; pacman.color = "#add8e6"; 
+                if (lives <= 0) { alert("ตอบผิดและพลังชีวิตหมด! Game Over!"); location.reload(); return; }
+                setTimeout(() => { pacman.isFrozen = false; pacman.color = old; }, 5000); 
+            } 
+            document.getElementById('quiz-overlay').style.display = 'none'; 
+            document.getElementById('answer-input').value = ''; isPaused = false; 
+        };
+    }
+
+    function addItem(type, count) {
+        let added = 0; while(added < count) { let r = Math.floor(Math.random() * map.length); let c = Math.floor(Math.random() * map[0].length); if(map[r][c] === 0 && !(r < 3 && c < 3) && !items.some(i => i.r === r && i.c === c)) { items.push({ r, c, type }); added++; } }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for(let r=0; r<map.length; r++) { for(let c=0; c<map[r].length; c++) { if(map[r][c]===1) drawStyledWall(ctx, c, r, tileSize, tileSize); } }
+        items.forEach(i => { ctx.font = 'bold 24px Arial'; ctx.fillStyle = 'white'; if(i.type === 2) ctx.fillText('?', i.c*40+15, i.r*40+30); if(i.type === 3) ctx.fillText('⏳', i.c*40+10, i.r*40+32); if(i.type === 4) ctx.fillText('⚡', i.c*40+10, i.r*40+32); });
+        ctx.fillStyle = pacman.color; ctx.beginPath(); ctx.arc(pacman.x, pacman.y, 15, 0.2*Math.PI, 1.8*Math.PI); ctx.lineTo(pacman.x, pacman.y); ctx.fill();
+        ghosts.forEach(g => { ctx.fillStyle = ghostStunned ? '#888' : g.color; ctx.shadowBlur = 12; ctx.shadowColor = g.color; ctx.beginPath(); ctx.arc(g.x, g.y, 15, Math.PI, 0); ctx.lineTo(g.x+15, g.y+15); ctx.lineTo(g.x-15, g.y+15); ctx.fill(); ctx.shadowBlur = 0; }); 
+        update(); requestAnimationFrame(draw);
+    }
+
+    document.getElementById('start-btn').onclick = () => {
+        pacman.color = document.getElementById('color-picker').value;
+        addItem(2, 8); addItem(3, 3); addItem(4, 2);
+        ghosts.forEach(g => { let s = false; while(!s) { let r = Math.floor(Math.random()*8)+7, c = Math.floor(Math.random()*14)+13; if(map[r][c] === 0) { g.x = c*40+20; g.y = r*40+20; s = true; } } });
+        document.getElementById('setup-menu').style.display = 'none';
+        isPaused = false; gameActive = true; updateUI();
+    };
+
+    window.onkeydown = e => { if(!isPaused && !pacman.isFrozen) { if(e.key==='ArrowUp'){pacman.dx=0;pacman.dy=-pacman.speed;} if(e.key==='ArrowDown'){pacman.dx=0;pacman.dy=pacman.speed;} if(e.key==='ArrowLeft'){pacman.dx=-pacman.speed;pacman.dy=0;} if(e.key==='ArrowRight'){pacman.dx=pacman.speed;pacman.dy=0;} if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.code)) e.preventDefault(); }};
+    document.getElementById('answer-input').onkeypress = (e) => { if(e.key === 'Enter') document.getElementById('submit-btn').click(); };
+    draw();
+</script>
+</body>
+</html>
