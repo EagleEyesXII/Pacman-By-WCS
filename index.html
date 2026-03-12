@@ -3,23 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pacman สูตรคูณ By WCS</title>
+    <title>Treasure Hunter สูตรคูณ By WCS</title>
     <style>
-        :root { --bg-color: #020204; --wall-color: #1e3fcc; --wall-glow: #00ccff; --text-color: #ffffff; --accent-color: #ffd700; }
+        :root { --bg-color: #020204; --wall-color: #8B4513; --wall-glow: #DAA520; --text-color: #ffffff; --accent-color: #ffd700; }
         body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Kanit', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        #game-container { position: relative; border: 4px solid var(--wall-color); border-radius: 12px; box-shadow: 0 0 30px rgba(0, 204, 255, 0.4); }
-        canvas { display: block; background-color: black; }
+        #game-container { position: relative; border: 4px solid var(--wall-color); border-radius: 12px; box-shadow: 0 0 30px rgba(218, 165, 32, 0.4); }
+        canvas { display: block; background-color: #1a1a00; }
         #setup-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 2, 4, 0.96); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; border-radius: 8px; }
         .menu-row { margin: 8px 0; text-align: center; }
         button#start-btn { padding: 15px 40px; font-size: 24px; background: var(--accent-color); color: black; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 15px; box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4); }
         #ui-layer { position: absolute; top: -55px; width: 100%; display: flex; justify-content: space-between; font-weight: bold; font-size: 20px; }
-        
-        /* สไตล์หน้าต่างคำถามและตัวจับเวลา */
         #quiz-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.98); padding: 40px; border: 4px solid var(--accent-color); border-radius: 20px; text-align: center; display: none; z-index: 10; min-width: 300px; }
         #timer-container { width: 100%; height: 10px; background: #333; border-radius: 5px; margin-top: 15px; overflow: hidden; }
         #timer-bar { width: 100%; height: 100%; background: #ff4d4d; transition: width 0.1s linear; }
         #timer-text { font-size: 20px; color: #ff4d4d; margin-top: 5px; font-weight: bold; }
-
         .heart { color: #ff4d4d; font-size: 28px; }
         select, input[type="color"] { padding: 8px; font-size: 16px; border-radius: 8px; cursor: pointer; border: 2px solid var(--wall-glow); background: #111; color: white; }
         .difficulty-btn { padding: 10px 20px; margin: 5px; border: 2px solid var(--accent-color); background: transparent; color: white; cursor: pointer; border-radius: 10px; font-weight: bold; transition: 0.3s; }
@@ -30,33 +27,22 @@
 
     <div id="game-container">
         <div id="setup-menu">
-            <h1 style="color:var(--accent-color); font-size: 48px; text-shadow: 0 0 15px #ffd700; margin-bottom: 5px;">Pacman สูตรคูณ</h1>
-            <h2 style="color:#00ccff; font-size: 22px; margin-top: 0;">By WCS</h2>
-            
+            <h1 style="color:var(--accent-color); font-size: 48px; text-shadow: 0 0 15px #ffd700; margin-bottom: 5px;">Treasure Hunter นักล่าสมบัติ</h1>
+            <h2 style="color:#00ccff; font-size: 22px; margin-top: 0;">ตะลุยสูตรคูณ By WCS</h2>
             <div class="menu-row">
-                <p>เลือกระดับความยาก (ตอบผิดหรือหมดเวลาหักพลังชีวิต!):</p>
                 <button class="difficulty-btn" onclick="setDiff('easy', this)">EASY</button>
                 <button class="difficulty-btn active" onclick="setDiff('normal', this)">NORMAL</button>
                 <button class="difficulty-btn" onclick="setDiff('hard', this)">HARD</button>
             </div>
-
-                        <div class="menu-row">
-                <span>สี: <input type="color" id="color-picker" value="#ffd700"></span>
-                <span> หมวก: 
-                    <select id="hat-select">
-                        <option value="none">ไม่ใส่หมวก</option>
-                        <option value="king">👑 มงกุฎ</option>
-                        <option value="ribbon">🎀 โบว์แดง</option>
-                        <option value="ninja">🥷 ผ้าคาดนินจา</option>
-                    </select>
-                </span>
+            <div class="menu-row">
+                <span>เลือกสีชุด: <input type="color" id="color-picker" value="#C2B280"></span>
             </div>
-            <button id="start-btn">เริ่มความมันส์!</button>
+            <button id="start-btn">เริ่มผจญภัย!</button>
         </div>
 
         <div id="ui-layer">
             <div>พลังชีวิต: <span id="lives-text" class="heart">❤❤❤❤❤</span></div>
-            <div id="score-display">เป้าหมาย: 0/10</div>
+            <div id="score-display">สมบัติที่พบ💎: 0/10</div>
         </div>
         
         <canvas id="gameCanvas" width="1120" height="640"></canvas>
@@ -65,9 +51,8 @@
             <h2 id="question-text" style="font-size:48px; margin-bottom: 10px;"></h2>
             <input type="number" id="answer-input" style="font-size:36px; width:150px; text-align:center; padding: 10px; border-radius: 10px;">
             <button id="submit-btn" style="padding:15px 30px; font-size:24px; background:var(--accent-color); border-radius:10px; font-weight: bold; cursor:pointer;">ตอบ</button>
-            
             <div id="timer-container"><div id="timer-bar"></div></div>
-            <div id="timer-text">เวลาเหลือ: 10</div>
+            <div id="timer-text">เวลา: 10</div>
         </div>
     </div>
 
@@ -86,14 +71,12 @@
     let ghostStunned = false, stunTimer = 0;
     let isInvincible = false, invincibleTimer = 0;
 
-    // ตัวแปรระบบจับเวลา
     let quizTimerInterval;
     let timeLeft = 10;
     let maxTime = 10;
 
-    const pacman = { x: 60, y: 60, radius: 15, speed: 5, dx: 0, dy: 0, color: '#ffd700', hat: 'none', isFrozen: false };
+    const pacman = { x: 60, y: 60, radius: 15, speed: 5, dx: 0, dy: 0, color: '#C2B280', isFrozen: false };
 
-  // --- ระบบเสียง (Audio API) ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playBeep(freq, duration, vol = 0.1) {
         const osc = audioCtx.createOscillator();
@@ -102,31 +85,6 @@
         osc.frequency.value = freq; gain.gain.setValueAtTime(vol, audioCtx.currentTime);
         osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
-
-    // --- ระบบวาดหมวก ---
-    function drawHat(ctx, x, y, type) {
-        if (type === 'none') return;
-        ctx.save();
-        if (type === 'king') {
-            ctx.fillStyle = '#ffd700';
-            ctx.beginPath();
-            ctx.moveTo(x-12, y-12); ctx.lineTo(x-15, y-22); ctx.lineTo(x-7, y-17);
-            ctx.lineTo(x, y-25); ctx.lineTo(x+7, y-17); ctx.lineTo(x+15, y-22);
-            ctx.lineTo(x+12, y-12); ctx.closePath(); ctx.fill();
-            ctx.fillStyle = 'red'; ctx.beginPath(); ctx.arc(x, y-18, 2, 0, Math.PI*2); ctx.fill();
-        } else if (type === 'ribbon') {
-            ctx.fillStyle = '#ff4d4d';
-            ctx.beginPath();
-            ctx.ellipse(x-8, y-15, 8, 5, Math.PI/4, 0, Math.PI*2);
-            ctx.ellipse(x+8, y-15, 8, 5, -Math.PI/4, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(x, y-15, 3, 0, Math.PI*2); ctx.fill();
-        } else if (type === 'ninja') {
-            ctx.fillStyle = '#333'; ctx.fillRect(x-18, y-15, 36, 6);
-            ctx.fillStyle = '#eee'; ctx.fillRect(x-6, y-15, 12, 6);
-        }
-        ctx.restore();
-    }
-
 
     const map = [
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -149,10 +107,10 @@
 
     let items = [];
     const ghosts = [
-        { x: 0, y: 0, color: 'red', dx: 3.2, dy: 0, type: 'chaser' },
-        { x: 0, y: 0, color: 'purple', dx: -2.8, dy: 0, type: 'random' },
-        { x: 0, y: 0, color: 'cyan', dx: 0, dy: 2.8, type: 'random' },
-        { x: 0, y: 0, color: 'limegreen', dx: 0, dy: -2.8, type: 'random' }
+        { x: 0, y: 0, color: '#FF4500', dx: 3.2, dy: 0, type: 'chaser' },
+        { x: 0, y: 0, color: '#9932CC', dx: -2.8, dy: 0, type: 'random' },
+        { x: 0, y: 0, color: '#00CED1', dx: 0, dy: 2.8, type: 'random' },
+        { x: 0, y: 0, color: '#32CD32', dx: 0, dy: -2.8, type: 'random' }
     ];
 
     function setDiff(mode, btn) {
@@ -168,14 +126,15 @@
     function updateUI() {
         const livesText = (lives === Infinity) ? "∞" : "❤".repeat(Math.max(0, lives));
         document.getElementById('lives-text').innerText = livesText;
-        document.getElementById('score-display').innerText = `เป้าหมาย: ${solvedCount}/${targetScore}`;
+        document.getElementById('score-display').innerText = `สมบัติที่พบ💎: ${solvedCount}/${targetScore}`;
     }
 
     function drawStyledWall(ctx, c, r, width, height) {
-        const x = c * width, y = r * height, cx = x + width/2, cy = y + height/2;
-        ctx.fillStyle = '#102060'; ctx.fillRect(x, y + height - wallDepth, width, wallDepth); ctx.fillRect(x + width - wallDepth, y, wallDepth, height - wallDepth);
-        const gradient = ctx.createRadialGradient(cx, cy, 2, cx, cy, width/1.5); gradient.addColorStop(0, '#00ccff'); gradient.addColorStop(0.6, '#1e3fcc'); gradient.addColorStop(1, '#001a66');
-        ctx.fillStyle = gradient; ctx.fillRect(x, y, width - wallDepth, height - wallDepth); ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'; ctx.strokeRect(x+1, y+1, width-wallDepth-2, height-wallDepth-2);
+        const x = c * width, y = r * height;
+        ctx.fillStyle = '#5C4033'; 
+        ctx.fillRect(x, y, width, height);
+        ctx.strokeStyle = '#DAA520';
+        ctx.strokeRect(x+2, y+2, width-4, height-4);
     }
 
     function checkWall(x, y) {
@@ -185,15 +144,21 @@
 
     function update() {
         if (!gameActive || isPaused) return;
-        if (!pacman.isFrozen) { let nX = pacman.x + pacman.dx, nY = pacman.y + pacman.dy; if (!checkWall(nX, nY)) { pacman.x = nX; pacman.y = nY; } }
+        if (!pacman.isFrozen) { 
+            let nX = pacman.x + pacman.dx, nY = pacman.y + pacman.dy; 
+            if (!checkWall(nX, nY)) { pacman.x = nX; pacman.y = nY; } 
+        }
         const pX = pacman.x, pY = pacman.y, pGridX = Math.floor(pX/tileSize), pGridY = Math.floor(pY/tileSize);
         
-        items.forEach((item, idx) => { if (item.r === pGridY && item.c === pGridX) { 
-            if (item.type === 2) spawnQuiz(); 
-            if (item.type === 3) { ghostStunned = true; stunTimer = Date.now() + 3000; } 
-            if (item.type === 4) { isInvincible = true; invincibleTimer = Date.now() + 5000; pacman.speed = 6.5; } 
-            items.splice(idx, 1); if (items.filter(i => i.type === 2).length < 4) addItem(2, 1);
-        } });
+        items.forEach((item, idx) => { 
+            if (item.r === pGridY && item.c === pGridX) { 
+                if (item.type === 2) spawnQuiz(); 
+                if (item.type === 3) { ghostStunned = true; stunTimer = Date.now() + 3000; } 
+                if (item.type === 4) { isInvincible = true; invincibleTimer = Date.now() + 5000; pacman.speed = 6.5; } 
+                items.splice(idx, 1); 
+                if (items.filter(i => i.type === 2).length < 4) addItem(2, 1);
+            } 
+        });
 
         ghosts.forEach(g => {
             if (!ghostStunned) {
@@ -221,63 +186,31 @@
     }
 
     function hit() {
-        if(lives !== Infinity) lives--; 
-        updateUI();
+        if(lives !== Infinity) lives--; updateUI();
         pacman.x = 60; pacman.y = 60; pacman.dx = 0; pacman.dy = 0;
-        if (lives <= 0) { alert("Game Over! พยายามเข้าใหม่นะ!"); location.reload(); }
+        if (lives <= 0) { alert("ภารกิจล้มเหลว! พยายามเข้าใหม่นะนักล่าสมบัติ!"); location.reload(); }
     }
 
-    // ฟังก์ชันจัดการตัวจับเวลา
     function startQuizTimer() {
-        timeLeft = maxTime;
-        document.getElementById('timer-bar').style.width = '100%';
-        document.getElementById('timer-text').innerText = `เวลาเหลือ: ${timeLeft}`;
-        
-        quizTimerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('timer-text').innerText = `เวลาเหลือ: ${timeLeft}`;
-            document.getElementById('timer-bar').style.width = (timeLeft / maxTime * 100) + '%';
-            
-            if (timeLeft <= 0) {
-                clearInterval(quizTimerInterval);
-                handleWrongAnswer("หมดเวลาแล้ว!");
-            }
-        }, 1000);
-    }
-	function startQuizTimer() {
         timeLeft = maxTime;
         const bar = document.getElementById('timer-bar');
         bar.style.backgroundColor = "#00ff00";
-        
         quizTimerInterval = setInterval(() => {
             timeLeft--;
             document.getElementById('timer-text').innerText = `เวลา: ${timeLeft}`;
             bar.style.width = (timeLeft / maxTime * 100) + '%';
-            
-            if (timeLeft <= 3 && timeLeft > 0) {
-                bar.style.backgroundColor = "#ff4d4d";
-                playBeep(600, 0.1); // เสียงเตือนติ๊ดๆ
-            }
-            
+            if (timeLeft <= 3 && timeLeft > 0) { bar.style.backgroundColor = "#ff4d4d"; playBeep(600, 0.1); }
             if (timeLeft <= 0) {
-                playBeep(200, 0.5); // เสียงหมดเวลา
-                clearInterval(quizTimerInterval);
-                handleWrongAnswer("หมดเวลาแล้ว!");
+                playBeep(200, 0.5); clearInterval(quizTimerInterval);
+                handleWrongAnswer("กับดักทำงาน! หมดเวลาแล้ว!");
             }
         }, 1000);
     }
 
     function handleWrongAnswer(msg) {
-        if (lives !== Infinity) lives--;
-        updateUI();
+        if (lives !== Infinity) lives--; updateUI();
         pacman.isFrozen = true; const old = pacman.color; pacman.color = "#add8e6"; 
-        
-        if (lives <= 0) { 
-            alert(msg + " และพลังชีวิตหมด! Game Over!"); 
-            location.reload(); 
-            return; 
-        }
-        
+        if (lives <= 0) { alert(msg + " พลังชีวิตหมด! Game Over!"); location.reload(); return; }
         alert(msg);
         setTimeout(() => { pacman.isFrozen = false; pacman.color = old; }, 3000);
         closeQuiz();
@@ -286,8 +219,7 @@
     function closeQuiz() {
         clearInterval(quizTimerInterval);
         document.getElementById('quiz-overlay').style.display = 'none'; 
-        document.getElementById('answer-input').value = ''; 
-        isPaused = false; 
+        document.getElementById('answer-input').value = ''; isPaused = false; 
     }
 
     function spawnQuiz() {
@@ -295,27 +227,17 @@
         const a = Math.floor(Math.random() * 11) + 2;
         const b = Math.floor(Math.random() * 11) + 2;
         const ans = a * b; 
-
         document.getElementById('question-text').innerText = `${a} x ${b} = ?`; 
         document.getElementById('quiz-overlay').style.display = 'block'; 
         document.getElementById('answer-input').focus();
-        
-        startQuizTimer(); // เริ่มจับเวลา
-
+        startQuizTimer();
         document.getElementById('submit-btn').onclick = () => { 
             const val = parseInt(document.getElementById('answer-input').value);
             if (val === ans) { 
                 solvedCount++; updateUI();
-                if (solvedCount >= targetScore) { 
-                    clearInterval(quizTimerInterval);
-                    alert("สุดยอด! คุณผ่านด่าน " + difficulty.toUpperCase()); 
-                    location.reload(); 
-                } else {
-                    closeQuiz();
-                }
-            } else { 
-                handleWrongAnswer("คำตอบไม่ถูกต้อง!");
-            } 
+                if (solvedCount >= targetScore) { clearInterval(quizTimerInterval); alert("สุดยอดนักล่าสมบัติ! คุณรอดพ้นจากอาถรรพ์มัมมี่แล้ว!"); location.reload(); }
+                else { closeQuiz(); }
+            } else { handleWrongAnswer("คำตอบผิด! กับดักกำลังทำงาน!"); } 
         };
     }
 
@@ -326,71 +248,76 @@
     function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         for(let r=0; r<map.length; r++) { for(let c=0; c<map[r].length; c++) { if(map[r][c]===1) drawStyledWall(ctx, c, r, tileSize, tileSize); } }
-        items.forEach(i => { ctx.font = 'bold 24px Arial'; ctx.fillStyle = 'white'; if(i.type === 2) ctx.fillText('?', i.c*40+15, i.r*40+30); if(i.type === 3) ctx.fillText('⏳', i.c*40+10, i.r*40+32); if(i.type === 4) ctx.fillText('⚡', i.c*40+10, i.r*40+32); });
-        // --- ส่วนที่ปรับปรุง: Pacman สีรุ้งกะพริบตอนอมตะ ---
+        items.forEach(i => { ctx.font = 'bold 24px Arial'; if(i.type === 2) ctx.fillText('💎', i.c*40+10, i.r*40+30); if(i.type === 3) ctx.fillText('⏰', i.c*40+10, i.r*40+32); if(i.type === 4) ctx.fillText('⚔️', i.c*40+10, i.r*40+32); });
+
+        // --- วาดนักล่าสมบัติ (Pacman) ---
+        ctx.save();
         if (isInvincible) {
-            // ใช้ค่าเวลาปัจจุบันมาทำเป็นองศาของสี (0-360) เพื่อสร้างสีรุ้งวนลูป
             const rainbowHue = (Date.now() / 5) % 360; 
             ctx.fillStyle = `hsl(${rainbowHue}, 100%, 60%)`;
-            // เพิ่มเอฟเฟกต์แสงฟุ้งรอบตัวตอนอมตะ
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = `hsl(${rainbowHue}, 100%, 60%)`;
+            ctx.shadowBlur = 20; ctx.shadowColor = ctx.fillStyle;
         } else {
             ctx.fillStyle = pacman.color;
-            ctx.shadowBlur = 0;
         }
 
+        // ตัวละคร (หัวและหน้า)
         ctx.beginPath();
-        ctx.arc(pacman.x, pacman.y, 15, 0.2*Math.PI, 1.8*Math.PI);
-        ctx.lineTo(pacman.x, pacman.y);
+        ctx.arc(pacman.x, pacman.y, 14, 0, Math.PI * 2);
         ctx.fill();
-        ctx.shadowBlur = 0; // รีเซ็ตค่าเงา
-        // ----------------------------------------------
-drawHat(ctx, pacman.x, pacman.y, pacman.hat);
-ghosts.forEach(g => {
+
+        // หมวกนักล่าสมบัติ (Fedora)
+        ctx.fillStyle = '#4B3621'; // สีน้ำตาลเข้ม
+        ctx.fillRect(pacman.x - 18, pacman.y - 12, 36, 4); // ปีกหมวก
+        ctx.fillRect(pacman.x - 10, pacman.y - 22, 20, 10); // ตัวหมวก
+
+        // กระเป๋าสะพาย
+        ctx.strokeStyle = '#5C4033';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(pacman.x - 10, pacman.y + 5);
+        ctx.lineTo(pacman.x + 10, pacman.y + 15);
+        ctx.stroke();
+
+        ctx.restore();
+
+        // --- วาดผีมัมมี่ ---
+        ghosts.forEach(g => {
             ctx.save();
-            // 1. วาดตัวผีและชายเสื้อหยักๆ
-            ctx.fillStyle = ghostStunned ? '#888' : g.color;
-            ctx.shadowBlur = ghostStunned ? 0 : 15;
+            ctx.fillStyle = ghostStunned ? '#888' : '#F5F5DC'; 
+            ctx.shadowBlur = ghostStunned ? 0 : 10;
             ctx.shadowColor = g.color;
             
             ctx.beginPath();
-            ctx.arc(g.x, g.y, 15, Math.PI, 0); // หัวผี
-            // วาดหยักด้านล่าง
+            ctx.arc(g.x, g.y, 15, Math.PI, 0); 
             for (let i = 0; i <= 3; i++) {
-                ctx.lineTo(g.x + 15 - (i * 10), g.y + 18 + (i % 2 === 0 ? -3 : 3));
+                ctx.lineTo(g.x + 15 - (i * 10), g.y + 18 + (i % 2 === 0 ? -2 : 2));
             }
             ctx.lineTo(g.x - 15, g.y);
             ctx.fill();
 
-            // 2. วาดลูกตา (มองตามทิศทางเคลื่อนที่)
-            const eyeX = (g.dx / 3.2) * 3;
-            const eyeY = (g.dy / 3.2) * 3;
-            
-            // ตาขาว
-            ctx.fillStyle = "white";
-            ctx.beginPath();
-            ctx.arc(g.x - 6 + eyeX, g.y - 4 + eyeY, 4, 0, Math.PI * 2);
-            ctx.arc(g.x + 6 + eyeX, g.y - 4 + eyeY, 4, 0, Math.PI * 2);
-            ctx.fill();
+            // เส้นผ้าพันแผล
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+            for (let i = -10; i <= 10; i += 6) {
+                ctx.beginPath(); ctx.moveTo(g.x - 14, g.y + i); ctx.lineTo(g.x + 14, g.y + i + 2); ctx.stroke();
+            }
 
-            // ตาดำ
-            ctx.fillStyle = "blue";
+            // ตาอาถรรพ์
+            const eyeX = (g.dx / 3.2) * 2;
+            const eyeY = (g.dy / 3.2) * 2;
+            ctx.fillStyle = '#332211'; ctx.fillRect(g.x - 10, g.y - 8, 20, 6);
+            ctx.fillStyle = ghostStunned ? 'white' : '#FFD700'; 
             ctx.beginPath();
-            ctx.arc(g.x - 6 + eyeX * 1.5, g.y - 4 + eyeY * 1.5, 2, 0, Math.PI * 2);
-            ctx.arc(g.x + 6 + eyeX * 1.5, g.y - 4 + eyeY * 1.5, 2, 0, Math.PI * 2);
+            ctx.arc(g.x - 5 + eyeX, g.y - 5 + eyeY, 2.5, 0, Math.PI * 2);
+            ctx.arc(g.x + 5 + eyeX, g.y - 5 + eyeY, 2.5, 0, Math.PI * 2);
             ctx.fill();
-
             ctx.restore();
-            ctx.shadowBlur = 0;
         });
-        // ----------------------------------------------ctx.shadowBlur = 12; ctx.shadowColor = g.color; ctx.beginPath(); ctx.arc(g.x, g.y, 15, Math.PI, 0); ctx.lineTo(g.x+15, g.y+15); ctx.lineTo(g.x-15, g.y+15); ctx.fill(); ctx.shadowBlur = 0; }); 
+
         update(); requestAnimationFrame(draw);
     }
 
     document.getElementById('start-btn').onclick = () => {
         pacman.color = document.getElementById('color-picker').value;
-	pacman.hat = document.getElementById('hat-select').value;
         addItem(2, 8); addItem(3, 3); addItem(4, 2);
         ghosts.forEach(g => { let s = false; while(!s) { let r = Math.floor(Math.random()*8)+7, c = Math.floor(Math.random()*14)+13; if(map[r][c] === 0) { g.x = c*40+20; g.y = r*40+20; s = true; } } });
         document.getElementById('setup-menu').style.display = 'none';
@@ -403,4 +330,3 @@ ghosts.forEach(g => {
 </script>
 </body>
 </html>
-
