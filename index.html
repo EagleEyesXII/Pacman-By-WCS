@@ -117,9 +117,9 @@
         difficulty = mode;
         document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        if(mode === 'easy') { lives = Infinity; targetScore = 5; maxTime = 15; }
+        if(mode === 'easy') { lives = 5; targetScore = 5; maxTime = 15; }
         else if(mode === 'normal') { lives = 5; targetScore = 10; maxTime = 10; }
-        else { lives = 1; targetScore = 10; maxTime = 7; }
+        else { lives = 3; targetScore = 15; maxTime = 7; }
         updateUI();
     }
 
@@ -330,3 +330,4 @@
 </script>
 </body>
 </html>
+
